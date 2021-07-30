@@ -1,56 +1,105 @@
 #include <Arduino.h>
-// Sensor for tempetature and pressure
-#include <Adafruit_BMP280.h>
- /* I2C */
-#include <Wire.h>
 
-// Sensor for tempetature and pressure
-Adafruit_BMP280 bmp; // use I2C interface
-Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
-Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
+#include "main.h"
+#include "sensors.h"
+#include "sensors_snapshot.h"
 
-const int other_led = 13;
+// Facade around all sensors on the board.
+Sensors sensors;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("hello");
+  Serial.println("Adafruit Feather Sense (nRF52840) is alive");
   pinMode(LED_BLUE, OUTPUT);
-  pinMode(other_led, OUTPUT);
+  pinMode(LED_RED_D13, OUTPUT);
 
-  if (!bmp.begin()) {
-    Serial.println(F("Could not find a valid BMP280 sensor, check wiring or "
-                      "try a different address!"));
-    while (1) delay(10);
-  }
-
-  /* Default settings from datasheet. */
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
-
-
+  sensors.init();
 }
+
+
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(500);
+  delay(200);
   digitalWrite(LED_BLUE, 1);
-  digitalWrite(other_led, 0);
-  delay(500);
+  digitalWrite(LED_RED_D13, 0);
+  delay(200);
   digitalWrite(LED_BLUE, 0);
-  digitalWrite(other_led, 1);
-  Serial.println("hello");
-  bmp_temp->printSensorDetails();
+  digitalWrite(LED_RED_D13, 1);
 
-  sensors_event_t temp_event, pressure_event;
-  bmp_temp->getEvent(&temp_event);
-  bmp_pressure->getEvent(&pressure_event);
-  Serial.print(F("Temperature = "));
+  auto data = sensors.getSnapshot();
+  Serial.printf(
+    "Temp=%05.2f°C, "
+    "Pressure=%07.2fhPa, " 
+    "Gyro(x=%.2f, y=%.2f, z=%.2f deg/s), "
+    "Accel(x=%.2f, y=%.2f, z=%.2f m/s^2)"
+    "\n", 
+    data.get_temp(),
+    data.get_pressure(),
+    data.get_gyro_degree()->x,
+    data.get_gyro_degree()->y,
+    data.get_gyro_degree()->z,
+    data.get_accel()->x,
+    data.get_accel()->y,
+    data.get_accel()->z
+  );
+  
+  // bmp_temp->printSensorDetails();
+
+  /*sensors_event_t temp_event, pressure_event, accel_event, gyro_event;
+  sensor_bmp_temp->getEvent(&temp_event);
+  sensor_bmp_pressure->getEvent(&pressure_event);
+  sensor_lsm_accel->getEvent(&accel_event);
+  sensor_lsm_gyro->getEvent(&gyro_event);
+  /*Serial.print(F("T = "));
   Serial.print(temp_event.temperature);
-  Serial.println(" *C");
+  Serial.print(" *C, ");
   Serial.print(F("Pressure = "));
   Serial.print(pressure_event.pressure);
-  Serial.println(" hPa");
+  Serial.print(" hPa, ");*/
+
+  /*Serial.print("Accel X: ");
+  Serial.print(accel_event.acceleration.x);
+  Serial.print(" Y: ");
+  Serial.print(accel_event.acceleration.y);
+  Serial.print(" Z: ");
+  Serial.print(accel_event.acceleration.z);
+  Serial.println(" m/s^2, ");*/
+
+  /*Serial.print("Gyro X: ");
+  Serial.print(gyro_event.gyro.x);
+  Serial.print(" Y: ");
+  Serial.print(gyro_event.gyro.y);
+  Serial.print(" Z: ");
+  Serial.print(gyro_event.gyro.z);
+  Serial.println(" radians/s");
+  Serial.println();
+
+  /*sensors_event_t accel;
+  sensors_event_t gyro;
+  // sensors_event_t temp;
+  // lsm_temp->getEvent(&temp);
+  lsm_accel->getEvent(&accel);
+  lsm_gyro->getEvent(&gyro);*/
+
+
+
+  /*// Display the results (acceleration is measured in m/s^2) 
+  Serial.print("\t\tAccel X: ");
+  Serial.print(accel.acceleration.x);
+  Serial.print(" \tY: ");
+  Serial.print(accel.acceleration.y);
+  Serial.print(" \tZ: ");
+  Serial.print(accel.acceleration.z);
+  Serial.println(" m/s^2 ");
+
+  // Display the results (rotation is measured in rad/s) 
+  Serial.print("\t\tGyro X: ");
+  Serial.print(gyro.gyro.x);
+  Serial.print(" \tY: ");
+  Serial.print(gyro.gyro.y);
+  Serial.print(" \tZ: ");
+  Serial.print(gyro.gyro.z);
+  Serial.println(" radians/s ");
+  Serial.println();*/
 }
