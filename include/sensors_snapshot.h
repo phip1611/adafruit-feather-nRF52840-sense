@@ -44,6 +44,10 @@ class SensorsSnapshot {
         constexpr static float ACCEL_Y_CALIBRATION_DIFF = -0.02;
         constexpr static float ACCEL_Z_CALIBRATION_DIFF = -0.29;
 
+        constexpr static float MAGNETIC_X_CALIBRATION_DIFF = 0.0;
+        constexpr static float MAGNETIC_Y_CALIBRATION_DIFF = 0.0;
+        constexpr static float MAGNETIC_Z_CALIBRATION_DIFF = 0.0;
+
         /** Calibrated Temperature in °C */
         float temp = 0;
         /** Calibrated Pressure in hPa.  */
@@ -54,6 +58,8 @@ class SensorsSnapshot {
         std::shared_ptr<VectoredData> gyro_degree;
         /** Calibrated Acceleration in m/s^2 */
         std::shared_ptr<VectoredData> accel;
+        /** Calibrated Magnetic Data in µT */
+        std::shared_ptr<VectoredData> magnetic;
 
         float radiants_to_degree(float rad) {
             return rad * 180.0 / 3.1415926535941;
@@ -64,12 +70,14 @@ class SensorsSnapshot {
             float& temp, 
             float& pressure, 
             sensors_vec_t& gyro,
-            sensors_vec_t& accel)
+            sensors_vec_t& accel,
+            sensors_vec_t& magnetic)
             : temp(temp),
               pressure(pressure),
               gyro_rad(std::make_shared<VectoredData>(VectoredData(gyro))),
               gyro_degree(std::make_shared<VectoredData>(VectoredData())),
-              accel(std::make_shared<VectoredData>(VectoredData(accel)))
+              accel(std::make_shared<VectoredData>(VectoredData(accel))),
+              magnetic(std::make_shared<VectoredData>(VectoredData(accel)))
             {
                 this->temp += TEMP_CALIBRATION_DIFF;
                 this->pressure += PRESSURE_CALIBRATION_DIFF;
@@ -94,6 +102,10 @@ class SensorsSnapshot {
                 this->accel->x = round(this->accel->x * 100.0) / 100.0;
                 this->accel->y = round(this->accel->y * 100.0) / 100.0;
                 this->accel->z = round(this->accel->z * 100.0) / 100.0;
+
+                this->magnetic->x += MAGNETIC_X_CALIBRATION_DIFF;
+                this->magnetic->y += MAGNETIC_Y_CALIBRATION_DIFF;
+                this->magnetic->z += MAGNETIC_Z_CALIBRATION_DIFF;
             }
 
         float get_temp() {
@@ -114,6 +126,10 @@ class SensorsSnapshot {
 
         std::shared_ptr<VectoredData> get_accel() {
             return this->accel;
-        }        
+        }      
+
+        std::shared_ptr<VectoredData> get_magnetic() {
+            return this->magnetic;
+        } 
         
 };

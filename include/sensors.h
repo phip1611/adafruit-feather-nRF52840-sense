@@ -1,9 +1,11 @@
 // Sensor for tempetature and pressure
 #include <Adafruit_BMP280.h>
- /* I2C */
+// I2C
 #include <Wire.h>
 // Sensor for Gyro + Accel
 #include <Adafruit_LSM6DS33.h> 
+// Magnetic field
+#include <Adafruit_LIS3MDL.h>
 
 #include "main.h"
 #include "sensors_snapshot.h"
@@ -12,13 +14,20 @@ class Sensors {
     private:
         // Sensor for tempetature and pressure via I2C interface
         Adafruit_BMP280 bmp280; 
-        // Sensor for acceleration and gyroscope via I2C interface (address 0x77)
+        // Sensor for acceleration and gyroscope via I2C interface
+        // (I2C address 0x77)
         Adafruit_LSM6DS33 lsm6ds33;
+        // Sensor for magnetic field via I2C interface
+        // (I2C address 0x1C)
+        Adafruit_LIS3MDL lis3mdl;
 
         // Sensors on BMP280
         Adafruit_Sensor *sensor_bmp_temp, *sensor_bmp_pressure;
         // Sensors on Adafruit_LSM6DS33 (temperature is available for internel gyroscope calibrating, we don't need it)
         Adafruit_Sensor /*sensor_lsm_temp,*/ *sensor_lsm_accel, *sensor_lsm_gyro;
+        // Sensors on LIS3MDL
+        // LIS3MDL doesn't use the Adafruit_Sensor abstraction
+        // sensor_t * sensor_lis_magnet;
 
         void setup_sensors_bmp280() {
             if (!bmp280.begin()) {
@@ -49,6 +58,19 @@ class Sensors {
             Serial.println("LSM6DS33 Found!");
         }
 
+        void setup_sensors_lis3mdl() {
+            if (!lis3mdl.begin_I2C()) {
+                Serial.println("Failed to find LIS3MDL chip");
+                abort_error();
+            }
+            Serial.println("IS3MDL Found!");
+
+            lis3mdl.setPerformanceMode(LIS3MDL_MEDIUMMODE);
+            lis3mdl.setOperationMode(LIS3MDL_CONTINUOUSMODE);
+            lis3mdl.setDataRate(LIS3MDL_DATARATE_155_HZ);
+            lis3mdl.setRange(LIS3MDL_RANGE_4_GAUSS);
+        }
+
         /** HALTS the prgoramm and light up both LEDs */
         void abort_error() {
             Serial.println("Aborting, error");
@@ -76,16 +98,19 @@ class Sensors {
             temp_event,
             pressure_event,
             accel_event,
-            gyro_event;
+            gyro_event,
+            magnetic_event;
             sensor_bmp_temp->getEvent(&temp_event);
             sensor_bmp_pressure->getEvent(&pressure_event);
             sensor_lsm_gyro->getEvent(&gyro_event);
             sensor_lsm_accel->getEvent(&accel_event);
+            lis3mdl.getEvent(&magnetic_event);
             return SensorsSnapshot(
                 temp_event.temperature,
                 pressure_event.pressure,
                 gyro_event.gyro,
-                accel_event.acceleration
+                accel_event.acceleration,
+                magnetic_event.magnetic
             );
         }
 };
