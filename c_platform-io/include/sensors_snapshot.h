@@ -48,6 +48,8 @@ class SensorsSnapshot {
         constexpr static float MAGNETIC_Y_CALIBRATION_DIFF = 0.0;
         constexpr static float MAGNETIC_Z_CALIBRATION_DIFF = 0.0;
 
+        constexpr static float HUMIDITY_CALIBRATION_DIFF = 0.0;
+
         /** Calibrated Temperature in °C */
         float temp = 0;
         /** Calibrated Pressure in hPa.  */
@@ -60,6 +62,8 @@ class SensorsSnapshot {
         std::shared_ptr<VectoredData> accel;
         /** Calibrated Magnetic Data in µT */
         std::shared_ptr<VectoredData> magnetic;
+        /** Relative humidity in %. */
+        float humidity = 0;
 
         float radiants_to_degree(float rad) {
             return rad * 180.0 / 3.1415926535941;
@@ -71,13 +75,15 @@ class SensorsSnapshot {
             float& pressure, 
             sensors_vec_t& gyro,
             sensors_vec_t& accel,
-            sensors_vec_t& magnetic)
+            sensors_vec_t& magnetic,
+            float& humidity)
             : temp(temp),
               pressure(pressure),
               gyro_rad(std::make_shared<VectoredData>(VectoredData(gyro))),
               gyro_degree(std::make_shared<VectoredData>(VectoredData())),
               accel(std::make_shared<VectoredData>(VectoredData(accel))),
-              magnetic(std::make_shared<VectoredData>(VectoredData(accel)))
+              magnetic(std::make_shared<VectoredData>(VectoredData(accel))),
+              humidity(humidity)
             {
                 this->temp += TEMP_CALIBRATION_DIFF;
                 this->pressure += PRESSURE_CALIBRATION_DIFF;
@@ -106,6 +112,8 @@ class SensorsSnapshot {
                 this->magnetic->x += MAGNETIC_X_CALIBRATION_DIFF;
                 this->magnetic->y += MAGNETIC_Y_CALIBRATION_DIFF;
                 this->magnetic->z += MAGNETIC_Z_CALIBRATION_DIFF;
+
+                this->humidity += HUMIDITY_CALIBRATION_DIFF;
             }
 
         float get_temp() {
@@ -132,4 +140,7 @@ class SensorsSnapshot {
             return this->magnetic;
         } 
         
+        float get_humidity() {
+            return this->humidity;
+        }
 };

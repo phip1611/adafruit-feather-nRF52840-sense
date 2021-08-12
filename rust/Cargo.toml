@@ -1,0 +1,15 @@
+[package]
+name = "rust-adafruit-feather-sense-weather-station"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m = "0.6.2"
+cortex-m-rt = "0.6.12"
+rtt-target = {version = "0.2.0", features = ["cortex-m"] }
+nrf52832-hal = { features = ["rt"], version = "0.12.2" }
+embedded-hal = "0.2.5"
+
+# probe-rs = "0.11.0"

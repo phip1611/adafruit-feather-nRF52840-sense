@@ -6,6 +6,8 @@
 #include <Adafruit_LSM6DS33.h> 
 // Magnetic field
 #include <Adafruit_LIS3MDL.h>
+// Humidity
+#include <Adafruit_SHT31.h>
 
 #include "main.h"
 #include "sensors_snapshot.h"
@@ -20,6 +22,9 @@ class Sensors {
         // Sensor for magnetic field via I2C interface
         // (I2C address 0x1C)
         Adafruit_LIS3MDL lis3mdl;
+        // Sensor for humidity via I2C interface
+        // (I2C address 0x44)
+        Adafruit_SHT31 sht31;
 
         // Sensors on BMP280
         Adafruit_Sensor *sensor_bmp_temp, *sensor_bmp_pressure;
@@ -28,6 +33,9 @@ class Sensors {
         // Sensors on LIS3MDL
         // LIS3MDL doesn't use the Adafruit_Sensor abstraction
         // sensor_t * sensor_lis_magnet;
+        // Sensors on SHT31
+        // SHT31 doesn't use the Adafruit_Sensor abstraction
+        // Adafruit_Sensor * sensor_sht31_humidity;
 
         void setup_sensors_bmp280() {
             if (!bmp280.begin()) {
@@ -71,6 +79,21 @@ class Sensors {
             lis3mdl.setRange(LIS3MDL_RANGE_4_GAUSS);
         }
 
+        void setup_sensors_sht31() {
+            if (!sht31.begin(0x44)) {
+                Serial.println("SHT31 not found");
+                abort_error();
+            }
+            Serial.print("Heater Enabled State: ");
+            if (sht31.isHeaterEnabled()) {
+                Serial.println("ENABLED");
+            }
+            else {
+                Serial.println("DISABLED");
+            }
+            Serial.println("SHT31 found");
+        }
+
         /** HALTS the prgoramm and light up both LEDs */
         void abort_error() {
             Serial.println("Aborting, error");
@@ -86,6 +109,8 @@ class Sensors {
         void init() {
             setup_sensors_bmp280();
             setup_sensors_lsm6ds33();
+            setup_sensors_lis3mdl();
+            setup_sensors_sht31();
 
             sensor_bmp_temp->printSensorDetails();
             sensor_bmp_pressure->printSensorDetails();
@@ -94,23 +119,24 @@ class Sensors {
         }
 
         SensorsSnapshot getSnapshot() {
-            sensors_event_t
-            temp_event,
-            pressure_event,
-            accel_event,
-            gyro_event,
-            magnetic_event;
+            sensors_event_t temp_event,
+                pressure_event,
+                accel_event,
+                gyro_event,
+                magnetic_event;
             sensor_bmp_temp->getEvent(&temp_event);
             sensor_bmp_pressure->getEvent(&pressure_event);
             sensor_lsm_gyro->getEvent(&gyro_event);
             sensor_lsm_accel->getEvent(&accel_event);
             lis3mdl.getEvent(&magnetic_event);
+            float humidity = sht31.readHumidity();
             return SensorsSnapshot(
                 temp_event.temperature,
                 pressure_event.pressure,
                 gyro_event.gyro,
                 accel_event.acceleration,
-                magnetic_event.magnetic
+                magnetic_event.magnetic,
+                humidity
             );
         }
 };

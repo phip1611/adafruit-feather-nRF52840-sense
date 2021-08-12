@@ -30,10 +30,11 @@ void loop() {
   auto data = sensors.getSnapshot();
   Serial.printf(
     "Temp=%05.2f°C, "
-    "Pressure=%07.2fhPa, " 
+    "Pressure=%.2fhPa, " 
     "Gyro(x=%.2f, y=%.2f, z=%.2f deg/s), "
     "Accel(x=%.2f, y=%.2f, z=%.2f m/s^2), "
     "Magnetic(x=%.2f, y=%.2f, z=%.2f µT), "
+    "Humidity=%.2f%"
     "\n", 
     data.get_temp(),
     data.get_pressure(),
@@ -45,7 +46,8 @@ void loop() {
     data.get_accel()->z,
     data.get_magnetic()->x,
     data.get_magnetic()->y,
-    data.get_magnetic()->z
+    data.get_magnetic()->z,
+    data.get_humidity()
   );
 
 }
