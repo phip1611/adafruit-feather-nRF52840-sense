@@ -1,5 +1,7 @@
 # Adafruit Feather nRF52840 Sense
 
+_This repository contains my (toy) projects with the Adafruit Feather nRF52840 Sense board._
+
 Board by Adafruit with nRF52840 as µC and Bluetooth 5.2 SoC (plus a few other wireless technologies).
 The nRF52840 is built around the 32-bit ARM® Cortex™-M4 CPU with floating point unit running at 64 MHz.
 
